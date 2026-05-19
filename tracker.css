@@ -414,6 +414,38 @@ body {
   padding: 12px;
 }
 
+.chart-wrap--tall {
+  height: 240px;
+}
+
+.chart-formula {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.weight-sliders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 6px;
+}
+
+.weight-sliders label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.weight-sliders input[type="range"] {
+  width: 80px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 /* ── Export ── */
 
 .export-hint {
@@ -473,4 +505,42 @@ body {
   .grid-table th.row-label {
     width: 90px;
   }
+}
+
+/* ── Difficulty chart extras ── */
+.chart-wrap--tall {
+  height: 240px;
+}
+
+.chart-formula {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 6px;
+  font-weight: 400;
+}
+
+.diff-bands {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.diff-band {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.diff-easy   { background: rgba(60,180,60,0.15);  color: #2a8a2a; border: 0.5px solid rgba(60,180,60,0.4); }
+.diff-medium { background: rgba(220,170,0,0.15);  color: #8a6a00; border: 0.5px solid rgba(220,170,0,0.4); }
+.diff-hard   { background: rgba(220,80,0,0.12);   color: #a03000; border: 0.5px solid rgba(220,80,0,0.4); }
+.diff-vhard  { background: rgba(200,0,0,0.1);     color: #900;    border: 0.5px solid rgba(200,0,0,0.4); }
+
+@media (prefers-color-scheme: dark) {
+  .diff-easy   { background: rgba(60,180,60,0.18);  color: #7dcc7d; border-color: rgba(60,180,60,0.35); }
+  .diff-medium { background: rgba(220,170,0,0.18);  color: #d4b400; border-color: rgba(220,170,0,0.35); }
+  .diff-hard   { background: rgba(220,80,0,0.15);   color: #f0722a; border-color: rgba(220,80,0,0.35); }
+  .diff-vhard  { background: rgba(200,0,0,0.15);    color: #f05050; border-color: rgba(200,0,0,0.35); }
 }
