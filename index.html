@@ -9,36 +9,17 @@
   <body>
     <div class="container">
       <div class="app-header">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-          "
-        >
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="app-title">Wool Puzzle 3D — Playtest Tracker</div>
-            <div class="app-sub">
-              Ghi chép số liệu theo wave · 5 levels/wave
-            </div>
+            <div class="app-sub">Ghi chép số liệu theo wave · 5 levels/wave</div>
           </div>
-          <span
-            id="save-status"
-            style="
-              font-size: 11px;
-              color: var(--text-muted);
-              white-space: nowrap;
-            "
-          ></span>
+          <span id="save-status" style="font-size:11px;color:var(--text-muted);white-space:nowrap;"></span>
         </div>
       </div>
 
       <div class="tabs">
-        <button class="tab active" onclick="switchTab('input')">
-          Data entry
-        </button>
+        <button class="tab active" onclick="switchTab('input')">Data entry</button>
         <button class="tab" onclick="switchTab('charts')">Charts</button>
         <button class="tab" onclick="switchTab('export')">Export</button>
       </div>
@@ -54,18 +35,12 @@
             <button class="wave-btn add" onclick="addWave()">+ Wave</button>
           </div>
         </div>
-
         <div id="wave-pills-container" class="wave-pills"></div>
-
         <table class="grid-table">
           <thead>
             <tr>
               <th class="row-label">Metric</th>
-              <th>Level 1</th>
-              <th>Level 2</th>
-              <th>Level 3</th>
-              <th>Level 4</th>
-              <th>Level 5</th>
+              <th>Level 1</th><th>Level 2</th><th>Level 3</th><th>Level 4</th><th>Level 5</th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -77,58 +52,55 @@
         <div class="summary-strip" id="summary-strip"></div>
         <div class="legend-row" id="chart-legend"></div>
 
+        <!-- DIFFICULTY CHART -->
+        <div class="chart-section">
+          <div class="chart-label">
+            Độ khó theo level
+            <span class="chart-formula">= 0.4 × (màu/20) + 0.6 × log‑norm(mảnh, 12–170)</span>
+          </div>
+          <div class="diff-bands">
+            <span class="diff-band diff-easy">Dễ &lt;0.35</span>
+            <span class="diff-band diff-medium">Vừa 0.35–0.6</span>
+            <span class="diff-band diff-hard">Khó 0.6–0.8</span>
+            <span class="diff-band diff-vhard">Rất khó &gt;0.8</span>
+          </div>
+          <div class="chart-wrap chart-wrap--tall">
+            <canvas id="chartDifficulty" role="img" aria-label="Line chart — độ khó theo level và wave"></canvas>
+          </div>
+        </div>
+
         <div class="chart-section">
           <div class="chart-label">Số màu theo level</div>
           <div class="chart-wrap">
-            <canvas
-              id="chartColors"
-              role="img"
-              aria-label="Line chart — số màu theo level và wave"
-            ></canvas>
+            <canvas id="chartColors" role="img" aria-label="Line chart — số màu theo level và wave"></canvas>
           </div>
         </div>
 
         <div class="chart-section">
           <div class="chart-label">Số mảnh 3D object theo level</div>
           <div class="chart-wrap">
-            <canvas
-              id="chartPieces"
-              role="img"
-              aria-label="Line chart — số mảnh 3D theo level và wave"
-            ></canvas>
+            <canvas id="chartPieces" role="img" aria-label="Line chart — số mảnh 3D theo level và wave"></canvas>
           </div>
         </div>
 
         <div class="chart-section">
           <div class="chart-label">Số lần sử dụng booster theo level</div>
           <div class="chart-wrap">
-            <canvas
-              id="chartBooster"
-              role="img"
-              aria-label="Line chart — số lần sử dụng booster theo level và wave"
-            ></canvas>
+            <canvas id="chartBooster" role="img" aria-label="Line chart — số lần sử dụng booster theo level và wave"></canvas>
           </div>
         </div>
 
         <div class="chart-section">
           <div class="chart-label">Số vàng kiếm được theo level</div>
           <div class="chart-wrap">
-            <canvas
-              id="chartGold"
-              role="img"
-              aria-label="Line chart — số vàng kiếm được theo level và wave"
-            ></canvas>
+            <canvas id="chartGold" role="img" aria-label="Line chart — số vàng kiếm được theo level và wave"></canvas>
           </div>
         </div>
 
         <div class="chart-section">
           <div class="chart-label">Thời gian chơi (giây) theo level</div>
           <div class="chart-wrap">
-            <canvas
-              id="chartTime"
-              role="img"
-              aria-label="Line chart — thời gian chơi theo level và wave"
-            ></canvas>
+            <canvas id="chartTime" role="img" aria-label="Line chart — thời gian chơi theo level và wave"></canvas>
           </div>
         </div>
       </div>
@@ -136,45 +108,19 @@
       <!-- TAB: EXPORT -->
       <div id="tab-export" class="tab-panel">
         <p class="export-hint">
-          Data được tự động lưu vào localStorage của browser. Dùng JSON backup
-          để chuyển sang máy khác hoặc giữ bản dự phòng.
+          Data được tự động lưu vào localStorage của browser. Dùng JSON backup để chuyển sang máy khác hoặc giữ bản dự phòng.
         </p>
-
-        <div
-          style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px"
-        >
-          <button
-            class="export-btn"
-            onclick="exportJSON()"
-            style="
-              background: var(--accent);
-              color: #fff;
-              border-color: var(--accent);
-            "
-          >
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+          <button class="export-btn" onclick="exportJSON()" style="background:var(--accent);color:#fff;border-color:var(--accent);">
             &#8595; Download JSON backup
           </button>
-          <label class="export-btn" style="cursor: pointer">
+          <label class="export-btn" style="cursor:pointer">
             &#8593; Import JSON
-            <input
-              type="file"
-              accept=".json"
-              style="display: none"
-              onchange="importJSON(this)"
-            />
+            <input type="file" accept=".json" style="display:none" onchange="importJSON(this)" />
           </label>
-          <button
-            class="export-btn"
-            onclick="clearAll()"
-            style="color: #c0392b; border-color: #c0392b"
-          >
-            Xoá tất cả
-          </button>
+          <button class="export-btn" onclick="clearAll()" style="color:#c0392b;border-color:#c0392b">Xoá tất cả</button>
         </div>
-
-        <p class="export-hint" style="margin-bottom: 8px">
-          CSV — paste vào Google Sheets hoặc Notion.
-        </p>
+        <p class="export-hint" style="margin-bottom:8px">CSV — paste vào Google Sheets hoặc Notion.</p>
         <div class="action-row">
           <button class="export-btn" onclick="copyCSV()">Copy CSV</button>
         </div>
@@ -190,8 +136,8 @@
         "#fd8886", // Hồng
         "#e56fee", // Tím Hồng
         "#8b69cc", // Tím
-        
-        "#74f7fb", // xanh ngọc
+
+        "#74f7fb", // Xanh ngọc
         "#45aaf4", // Xanh dương
         "#306eb4", // Xanh dương đậm
 
@@ -203,105 +149,78 @@
         "#ffbf4b", // Cam
         "#ba651e", // Nâu
 
-        "#f5dda0", //Be vàng nhạt
+        "#f5dda0", // Be vàng nhạt
         "#fffff2", // Trắng
 
         "#504e51", // Đen
       ];
 
       const COLOR_NAMES = [
-        "Đỏ",
-        "Đỏ hồng",
-        "Hồng",
-        "Tím Hồng",
-        "Tím",
-
-        "Xanh ngọc",
-        "Xanh dương",
-        "Xanh dương đậm",
-
-        "Xanh lá mạ",
-        "Xanh lá",
-        "Lục",
-
-        "Vàng",
-        "Cam",
-        "Nâu nhạt",
-        "Nâu vàng",
-
-        "Be vàng nhạt",
-        "Trắng",
-
-        "Đen",
+        "Đỏ", "Đỏ hồng", "Hồng", "Tím Hồng", "Tím",
+        "Xanh ngọc", "Xanh dương", "Xanh dương đậm",
+        "Xanh lá mạ", "Xanh lá", "Lục",
+        "Vàng", "Cam", "Nâu nhạt", "Nâu vàng",
+        "Be vàng nhạt", "Trắng", "Đen",
       ];
+
       const CHART_COLORS = [
-        "#378ADD",
-        "#1D9E75",
-        "#EF9F27",
-        "#D4537E",
-        "#7F77DD",
-        "#E24B4A",
+        "#378ADD", "#1D9E75", "#EF9F27", "#D4537E", "#7F77DD", "#E24B4A",
       ];
 
       const ROWS = [
-        {
-          key: "colors_count",
-          label: "Số màu",
-          type: "number",
-          placeholder: "—",
-        },
-        {
-          key: "colors_used",
-          label: "Màu sử dụng",
-          type: "colors",
-          placeholder: "",
-        },
-        {
-          key: "pieces",
-          label: "Số mảnh 3D",
-          type: "number",
-          placeholder: "—",
-        },
-        {
-          key: "booster",
-          label: "Số lần dùng booster",
-          type: "number",
-          placeholder: "—",
-        },
-        {
-          key: "gold",
-          label: "Số vàng kiếm được",
-          type: "number",
-          placeholder: "—",
-        },
-        {
-          key: "playtime",
-          label: "Thời gian (giây)",
-          type: "number",
-          placeholder: "—",
-        },
-        {
-          key: "notes",
-          label: "Ghi chú",
-          type: "text",
-          placeholder: "Nhận xét...",
-        },
+        { key: "colors_count", label: "Số màu",              type: "number", placeholder: "—" },
+        { key: "colors_used",  label: "Màu sử dụng",         type: "colors", placeholder: "" },
+        { key: "pieces",       label: "Số mảnh 3D",          type: "number", placeholder: "—" },
+        { key: "booster",      label: "Số lần dùng booster", type: "number", placeholder: "—" },
+        { key: "gold",         label: "Số vàng kiếm được",   type: "number", placeholder: "—" },
+        { key: "playtime",     label: "Thời gian (giây)",    type: "number", placeholder: "—" },
+        { key: "notes",        label: "Ghi chú",             type: "text",   placeholder: "Nhận xét..." },
       ];
 
       const STORAGE_KEY = "wool_tracker_v1";
       let charts = {};
 
+      /* ── Difficulty formula ──────────────────────────────────────
+         ColorScore  = colors / 20           (linear, max 20)
+         PieceScore  = log-normalize(pieces, min=12, max=170)
+         Difficulty  = 0.4 × ColorScore + 0.6 × PieceScore  → [0, 1]
+      ─────────────────────────────────────────────────────────── */
+      const DIFF_MAX_COLORS = 20;
+      const DIFF_MIN_PIECES = 12;
+      const DIFF_MAX_PIECES = 170;
+      const LOG_MIN = Math.log(DIFF_MIN_PIECES);
+      const LOG_MAX = Math.log(DIFF_MAX_PIECES);
+
+      function difficultyScore(level) {
+        const c = getNum(level.colors_count);
+        const p = getNum(level.pieces);
+        if (c === null && p === null) return null;
+        const colorScore = c !== null
+          ? Math.min(c, DIFF_MAX_COLORS) / DIFF_MAX_COLORS
+          : 0;
+        const pieceScore = p !== null && p > 0
+          ? Math.max(0, Math.min(
+              (Math.log(Math.max(p, DIFF_MIN_PIECES)) - LOG_MIN) / (LOG_MAX - LOG_MIN),
+              1))
+          : 0;
+        return +(0.4 * colorScore + 0.6 * pieceScore).toFixed(3);
+      }
+
+      function diffLabel(score) {
+        if (score === null) return "—";
+        if (score < 0.35) return "Dễ";
+        if (score < 0.60) return "Vừa";
+        if (score < 0.80) return "Khó";
+        return "Rất khó";
+      }
+
+      /* ── State ── */
       function createWave(n) {
         return {
           name: "Wave " + n,
           levels: Array.from({ length: 5 }, () => ({
-            colors_count: "",
-            colors_used: [],
-            pieces: "",
-            booster: "",
-            gold: "",
-            playtime: "",
-            notes: "",
+            colors_count: "", colors_used: [], pieces: "",
+            booster: "", gold: "", playtime: "", notes: "",
           })),
         };
       }
@@ -315,28 +234,18 @@
       }
 
       function persist() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch (e) {}
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         const el = document.getElementById("save-status");
-        if (el)
-          el.textContent =
-            "Saved " +
-            new Date().toLocaleTimeString("vi-VN", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            });
+        if (el) el.textContent = "Saved " + new Date().toLocaleTimeString("vi-VN", {
+          hour: "2-digit", minute: "2-digit", second: "2-digit",
+        });
       }
 
       function exportJSON() {
-        const blob = new Blob([JSON.stringify(state, null, 2)], {
-          type: "application/json",
-        });
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download =
-          "wool_tracker_" + new Date().toISOString().slice(0, 10) + ".json";
+        a.download = "wool_tracker_" + new Date().toISOString().slice(0, 10) + ".json";
         a.click();
       }
 
@@ -348,15 +257,9 @@
           try {
             const parsed = JSON.parse(e.target.result);
             if (parsed.waves && Array.isArray(parsed.waves)) {
-              state = parsed;
-              persist();
-              buildTable();
-            } else {
-              alert("File không hợp lệ.");
-            }
-          } catch (err) {
-            alert("Không đọc được file JSON.");
-          }
+              state = parsed; persist(); buildTable();
+            } else { alert("File không hợp lệ."); }
+          } catch (err) { alert("Không đọc được file JSON."); }
         };
         reader.readAsText(file);
       }
@@ -372,9 +275,7 @@
 
       function save(waveIdx, levelIdx, key, val) {
         state.waves[waveIdx].levels[levelIdx][key] = val;
-        persist();
-        refreshSummary();
-        updateCSV();
+        persist(); refreshSummary(); updateCSV();
       }
 
       function getNum(v) {
@@ -384,12 +285,8 @@
 
       /* ── Tab switching ── */
       function switchTab(name) {
-        document
-          .querySelectorAll(".tab, .tab-panel")
-          .forEach((el) => el.classList.remove("active"));
-        document
-          .querySelector(`.tab[onclick="switchTab('${name}')"]`)
-          .classList.add("active");
+        document.querySelectorAll(".tab, .tab-panel").forEach((el) => el.classList.remove("active"));
+        document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add("active");
         document.getElementById("tab-" + name).classList.add("active");
         if (name === "charts") renderCharts();
         if (name === "export") updateCSV();
@@ -399,22 +296,13 @@
       function addWave() {
         state.waves.push(createWave(state.waves.length + 1));
         state.currentWave = state.waves.length - 1;
-        persist();
-        buildTable();
+        persist(); buildTable();
       }
       function prevWave() {
-        if (state.currentWave > 0) {
-          state.currentWave--;
-          persist();
-          buildTable();
-        }
+        if (state.currentWave > 0) { state.currentWave--; persist(); buildTable(); }
       }
       function nextWave() {
-        if (state.currentWave < state.waves.length - 1) {
-          state.currentWave++;
-          persist();
-          buildTable();
-        }
+        if (state.currentWave < state.waves.length - 1) { state.currentWave++; persist(); buildTable(); }
       }
 
       /* ── Build table ── */
@@ -433,10 +321,7 @@
           const p = document.createElement("div");
           p.className = "wave-pill" + (i === w ? " active" : "");
           p.textContent = wv.name;
-          p.onclick = () => {
-            state.currentWave = i;
-            buildTable();
-          };
+          p.onclick = () => { state.currentWave = i; buildTable(); };
           pills.appendChild(p);
         });
 
@@ -458,22 +343,18 @@
 
             if (row.type === "number") {
               const inp = document.createElement("input");
-              inp.type = "number";
-              inp.min = "0";
-              inp.className =
-                "cell-input" + (data[row.key] !== "" ? " has-value" : "");
+              inp.type = "number"; inp.min = "0";
+              inp.className = "cell-input" + (data[row.key] !== "" ? " has-value" : "");
               inp.placeholder = row.placeholder;
               inp.value = data[row.key];
               inp.oninput = function () {
                 save(w, li, row.key, this.value);
-                this.className =
-                  "cell-input" + (this.value !== "" ? " has-value" : "");
+                this.className = "cell-input" + (this.value !== "" ? " has-value" : "");
               };
               td.appendChild(inp);
             } else if (row.type === "colors") {
               const wrap = document.createElement("div");
               wrap.className = "color-cell";
-
               const tags = document.createElement("div");
               tags.className = "color-tags";
 
@@ -483,14 +364,12 @@
                 dot.style.background = hex;
                 dot.title = COLOR_NAMES[ci];
                 const active = data.colors_used.includes(ci);
-                dot.style.opacity = active ? "1" : "1";
                 dot.style.outline = active ? `2px solid ${hex}` : "none";
                 dot.style.outlineOffset = "1px";
                 dot.onclick = () => {
                   const arr = state.waves[w].levels[li].colors_used;
                   const idx = arr.indexOf(ci);
-                  if (idx === -1) arr.push(ci);
-                  else arr.splice(idx, 1);
+                  if (idx === -1) arr.push(ci); else arr.splice(idx, 1);
                   save(w, li, "colors_used", arr);
                   buildTable();
                 };
@@ -499,26 +378,20 @@
               wrap.appendChild(tags);
 
               const countInput = document.createElement("input");
-              countInput.type = "number";
-              countInput.min = "0";
+              countInput.type = "number"; countInput.min = "0";
               countInput.className = "colors-used-input";
               countInput.placeholder = "Count";
               countInput.value = data.colors_count;
-              countInput.oninput = function () {
-                save(w, li, "colors_count", this.value);
-              };
+              countInput.oninput = function () { save(w, li, "colors_count", this.value); };
               wrap.appendChild(countInput);
               td.appendChild(wrap);
             } else if (row.type === "text") {
               const ta = document.createElement("textarea");
               ta.placeholder = row.placeholder;
               ta.value = data[row.key];
-              ta.oninput = function () {
-                save(w, li, row.key, this.value);
-              };
+              ta.oninput = function () { save(w, li, row.key, this.value); };
               td.appendChild(ta);
             }
-
             tr.appendChild(td);
           }
           tbody.appendChild(tr);
@@ -529,64 +402,45 @@
 
       /* ── Summary ── */
       function refreshSummary() {
-        let totalGold = 0,
-          maxColors = 0,
-          totalTime = 0,
-          timeCount = 0,
-          totalBooster = 0;
+        let totalGold = 0, maxColors = 0, totalTime = 0, timeCount = 0;
         state.waves.forEach((wv) => {
           wv.levels.forEach((l) => {
             const c = getNum(l.colors_count);
             const g = getNum(l.gold);
-            const b = getNum(l.booster);
             const t = getNum(l.playtime);
             if (c !== null && c > maxColors) maxColors = c;
             if (g !== null) totalGold += g;
-            if (b !== null) totalBooster += b;
-            if (t !== null) {
-              totalTime += t;
-              timeCount++;
-            }
+            if (t !== null) { totalTime += t; timeCount++; }
           });
         });
-
         const el = document.getElementById("summary-strip");
         if (!el) return;
         el.innerHTML = `
-    <div class="stat"><div class="stat-label">Waves recorded</div><div class="stat-value">${state.waves.length}</div></div>
-    <div class="stat"><div class="stat-label">Total gold earned</div><div class="stat-value">${totalGold}</div></div>
-    <div class="stat"><div class="stat-label">Max colors seen</div><div class="stat-value">${maxColors || "—"}</div></div>
-    <div class="stat"><div class="stat-label">Avg playtime</div><div class="stat-value">${timeCount > 0 ? Math.round(totalTime / timeCount) + "s" : "—"}</div></div>
-  `;
+          <div class="stat"><div class="stat-label">Waves recorded</div><div class="stat-value">${state.waves.length}</div></div>
+          <div class="stat"><div class="stat-label">Total gold earned</div><div class="stat-value">${totalGold}</div></div>
+          <div class="stat"><div class="stat-label">Max colors seen</div><div class="stat-value">${maxColors || "—"}</div></div>
+          <div class="stat"><div class="stat-label">Avg playtime</div><div class="stat-value">${timeCount > 0 ? Math.round(totalTime / timeCount) + "s" : "—"}</div></div>
+        `;
       }
 
       /* ── Charts ── */
       function renderCharts() {
         refreshSummary();
-
         const waveLabels = ["L1", "L2", "L3", "L4", "L5"];
 
-        const legendEl = document.getElementById("chart-legend");
-        legendEl.innerHTML = state.waves
-          .map(
-            (wv, i) => `
-    <span class="legend-item">
-      <span class="legend-dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>
-      ${wv.name}
-    </span>`,
-          )
-          .join("");
+        document.getElementById("chart-legend").innerHTML = state.waves.map((wv, i) => `
+          <span class="legend-item">
+            <span class="legend-dot" style="background:${CHART_COLORS[i % CHART_COLORS.length]}"></span>
+            ${wv.name}
+          </span>`).join("");
 
-        function datasets(key) {
+        function lineDatasets(key) {
           return state.waves.map((wv, wi) => ({
             label: wv.name,
             data: wv.levels.map((l) => getNum(l[key])),
             borderColor: CHART_COLORS[wi % CHART_COLORS.length],
             backgroundColor: CHART_COLORS[wi % CHART_COLORS.length] + "22",
-            tension: 0.3,
-            fill: false,
-            pointRadius: 4,
-            spanGaps: true,
+            tension: 0.3, fill: false, pointRadius: 4, spanGaps: true,
           }));
         }
 
@@ -595,86 +449,124 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: {
-              grid: { color: "rgba(128,128,128,0.1)" },
-              ticks: { font: { size: 11 }, color: "#888" },
-            },
-            y: {
-              grid: { color: "rgba(128,128,128,0.1)" },
-              ticks: { font: { size: 11 }, color: "#888", precision: 0 },
-              beginAtZero: true,
-            },
+            x: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { font: { size: 11 }, color: "#888" } },
+            y: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { font: { size: 11 }, color: "#888", precision: 0 }, beginAtZero: true },
           },
         };
 
         [
-          { id: "chartColors", key: "colors_count" },
-          { id: "chartPieces", key: "pieces" },
+          { id: "chartColors",  key: "colors_count" },
+          { id: "chartPieces",  key: "pieces" },
           { id: "chartBooster", key: "booster" },
-          { id: "chartGold", key: "gold" },
-          { id: "chartTime", key: "playtime" },
+          { id: "chartGold",    key: "gold" },
+          { id: "chartTime",    key: "playtime" },
         ].forEach(({ id, key }) => {
           if (charts[id]) charts[id].destroy();
           charts[id] = new Chart(document.getElementById(id), {
             type: "line",
-            data: { labels: waveLabels, datasets: datasets(key) },
+            data: { labels: waveLabels, datasets: lineDatasets(key) },
             options: { ...sharedOpts },
           });
         });
+
+        /* Difficulty — line chart, y axis 0–1, dashed threshold lines */
+        const diffDatasets = state.waves.map((wv, wi) => ({
+          label: wv.name,
+          data: wv.levels.map((l) => difficultyScore(l)),
+          borderColor: CHART_COLORS[wi % CHART_COLORS.length],
+          backgroundColor: CHART_COLORS[wi % CHART_COLORS.length] + "28",
+          tension: 0.35, fill: true, pointRadius: 5, pointHoverRadius: 7, spanGaps: true,
+        }));
+
+        /* threshold annotation drawn via afterDraw plugin */
+        const thresholdPlugin = {
+          id: "thresholds",
+          afterDraw(chart) {
+            const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+            [
+              { val: 0.35, color: "rgba(60,180,60,0.55)" },
+              { val: 0.60, color: "rgba(220,170,0,0.55)" },
+              { val: 0.80, color: "rgba(220,80,0,0.55)" },
+            ].forEach(({ val, color }) => {
+              const yPx = y.getPixelForValue(val);
+              ctx.save();
+              ctx.strokeStyle = color;
+              ctx.setLineDash([5, 5]);
+              ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.moveTo(left, yPx); ctx.lineTo(right, yPx); ctx.stroke();
+              ctx.restore();
+            });
+          },
+        };
+
+        if (charts["chartDifficulty"]) charts["chartDifficulty"].destroy();
+        charts["chartDifficulty"] = new Chart(document.getElementById("chartDifficulty"), {
+          type: "line",
+          plugins: [thresholdPlugin],
+          data: { labels: waveLabels, datasets: diffDatasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const s = ctx.parsed.y;
+                    return s !== null
+                      ? `${ctx.dataset.label}: ${s.toFixed(2)}  (${diffLabel(s)})`
+                      : `${ctx.dataset.label}: —`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { font: { size: 11 }, color: "#888" } },
+              y: {
+                min: 0, max: 1,
+                grid: { color: "rgba(128,128,128,0.1)" },
+                ticks: {
+                  font: { size: 11 }, color: "#888", stepSize: 0.2,
+                  callback: (v) => v.toFixed(1),
+                },
+              },
+            },
+          },
+        });
       }
 
-      /* ── CSV export ── */
+      /* ── CSV export (includes difficulty) ── */
       function updateCSV() {
-        const rows = [
-          [
-            "Wave",
-            "Level",
-            "Số màu",
-            "Màu sử dụng",
-            "Số mảnh 3D",
-            "Số lần dùng booster",
-            "Số vàng kiếm được",
-            "Thời gian (s)",
-            "Ghi chú",
-          ],
-        ];
-        state.waves.forEach((wv, wi) => {
+        const rows = [[
+          "Wave", "Level", "Số màu", "Màu sử dụng", "Số mảnh 3D",
+          "Số lần dùng booster", "Số vàng kiếm được", "Thời gian (s)",
+          "Độ khó (0–1)", "Nhận xét độ khó", "Ghi chú",
+        ]];
+        state.waves.forEach((wv) => {
           wv.levels.forEach((l, li) => {
-            const colorNames = l.colors_used
-              .map((ci) => COLOR_NAMES[ci])
-              .join("+");
+            const colorNames = l.colors_used.map((ci) => COLOR_NAMES[ci]).join("+");
+            const diff = difficultyScore(l);
             rows.push([
-              wv.name,
-              `L${li + 1}`,
-              l.colors_count,
-              colorNames,
-              l.pieces,
-              l.booster,
-              l.gold,
-              l.playtime,
+              wv.name, `L${li + 1}`,
+              l.colors_count, colorNames, l.pieces,
+              l.booster, l.gold, l.playtime,
+              diff !== null ? diff : "",
+              diff !== null ? diffLabel(diff) : "",
               '"' + (l.notes || "").replace(/"/g, '""') + '"',
             ]);
           });
         });
-        document.getElementById("csv-output").value = rows
-          .map((r) => r.join(","))
-          .join("\n");
+        document.getElementById("csv-output").value = rows.map((r) => r.join(",")).join("\n");
       }
 
       function copyCSV() {
         const ta = document.getElementById("csv-output");
-        navigator.clipboard.writeText(ta.value).catch(() => {
-          ta.select();
-          document.execCommand("copy");
-        });
+        navigator.clipboard.writeText(ta.value).catch(() => { ta.select(); document.execCommand("copy"); });
       }
 
       buildTable();
       const el = document.getElementById("save-status");
-      if (el)
-        el.textContent = localStorage.getItem(STORAGE_KEY)
-          ? "Data đã được khôi phục"
-          : "Chưa có data";
+      if (el) el.textContent = localStorage.getItem(STORAGE_KEY) ? "Data đã được khôi phục" : "Chưa có data";
     </script>
   </body>
 </html>
