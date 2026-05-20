@@ -12,7 +12,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
             <div class="app-title">Wool Puzzle 3D — Playtest Tracker</div>
-            <div class="app-sub">Ghi chép số liệu theo wave · 5 levels/wave</div>
+            <div class="app-sub">Ghi chép số liệu theo wave · tối đa 5 levels/wave</div>
           </div>
           <span id="save-status" style="font-size:11px;color:var(--text-muted);white-space:nowrap;"></span>
         </div>
@@ -21,13 +21,14 @@
       <div class="tabs">
         <button class="tab active" onclick="switchTab('input')">Data entry</button>
         <button class="tab" onclick="switchTab('charts')">Charts</button>
+        <button class="tab" onclick="switchTab('analysis')">Level Analysis</button>
         <button class="tab" onclick="switchTab('export')">Export</button>
       </div>
 
       <!-- TAB: DATA ENTRY -->
       <div id="tab-input" class="tab-panel active">
         <div class="wave-header">
-          <span class="wave-title" id="wave-label">Wave 1 — Levels 1–5</span>
+          <span class="wave-title" id="wave-label">Wave 1</span>
           <div class="wave-nav">
             <button class="wave-btn" onclick="prevWave()">&#8592;</button>
             <span class="wave-counter" id="wave-counter">1 / 1</span>
@@ -36,15 +37,14 @@
           </div>
         </div>
         <div id="wave-pills-container" class="wave-pills"></div>
-        <table class="grid-table">
-          <thead>
-            <tr>
-              <th class="row-label">Metric</th>
-              <th>Level 1</th><th>Level 2</th><th>Level 3</th><th>Level 4</th><th>Level 5</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
+
+        <!-- level count selector -->
+        <div class="level-count-row">
+          <label class="level-count-label">Số levels trong wave này:</label>
+          <div class="level-count-btns" id="level-count-btns"></div>
+        </div>
+
+        <div id="table-wrap"></div>
       </div>
 
       <!-- TAB: CHARTS -->
@@ -52,11 +52,10 @@
         <div class="summary-strip" id="summary-strip"></div>
         <div class="legend-row" id="chart-legend"></div>
 
-        <!-- DIFFICULTY CHART -->
         <div class="chart-section">
           <div class="chart-label">
             Độ khó theo level
-            <span class="chart-formula">= 0.4 × (màu/20) + 0.6 × log‑norm(mảnh, 12–170)</span>
+            <span class="chart-formula">= 0.3 × (màu/18) + 0.7 × log‑norm(mảnh, 12–200)</span>
           </div>
           <div class="diff-bands">
             <span class="diff-band diff-easy">Dễ &lt;0.35</span>
@@ -65,54 +64,91 @@
             <span class="diff-band diff-vhard">Rất khó &gt;0.8</span>
           </div>
           <div class="chart-wrap chart-wrap--tall">
-            <canvas id="chartDifficulty" role="img" aria-label="Line chart — độ khó theo level và wave"></canvas>
+            <canvas id="chartDifficulty" role="img"></canvas>
           </div>
         </div>
 
         <div class="chart-section">
           <div class="chart-label">Số màu theo level</div>
-          <div class="chart-wrap">
-            <canvas id="chartColors" role="img" aria-label="Line chart — số màu theo level và wave"></canvas>
-          </div>
+          <div class="chart-wrap"><canvas id="chartColors"></canvas></div>
         </div>
-
         <div class="chart-section">
           <div class="chart-label">Số mảnh 3D object theo level</div>
-          <div class="chart-wrap">
-            <canvas id="chartPieces" role="img" aria-label="Line chart — số mảnh 3D theo level và wave"></canvas>
-          </div>
+          <div class="chart-wrap"><canvas id="chartPieces"></canvas></div>
         </div>
-
         <div class="chart-section">
           <div class="chart-label">Số lần sử dụng booster theo level</div>
-          <div class="chart-wrap">
-            <canvas id="chartBooster" role="img" aria-label="Line chart — số lần sử dụng booster theo level và wave"></canvas>
-          </div>
+          <div class="chart-wrap"><canvas id="chartBooster"></canvas></div>
         </div>
-
         <div class="chart-section">
           <div class="chart-label">Số vàng kiếm được theo level</div>
-          <div class="chart-wrap">
-            <canvas id="chartGold" role="img" aria-label="Line chart — số vàng kiếm được theo level và wave"></canvas>
-          </div>
+          <div class="chart-wrap"><canvas id="chartGold"></canvas></div>
         </div>
-
         <div class="chart-section">
           <div class="chart-label">Thời gian chơi (giây) theo level</div>
-          <div class="chart-wrap">
-            <canvas id="chartTime" role="img" aria-label="Line chart — thời gian chơi theo level và wave"></canvas>
-          </div>
+          <div class="chart-wrap"><canvas id="chartTime"></canvas></div>
         </div>
       </div>
 
       <!-- TAB: EXPORT -->
+      <!-- TAB: LEVEL ANALYSIS -->
+      <div id="tab-analysis" class="tab-panel">
+        <div class="an-toolbar">
+          <div class="an-toolbar-left">
+            <label class="an-import-btn">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M3.5 5.5 7 9l3.5-3.5M1.5 11.5h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Import CSV
+              <input type="file" accept=".csv,.txt" style="display:none" onchange="analysisImportCSV(this)" />
+            </label>
+            <span class="an-row-count" id="an-row-count"></span>
+          </div>
+          <div class="an-toolbar-right" id="an-col-toggles"></div>
+        </div>
+
+        <div id="an-empty" class="an-empty">
+          <div class="an-empty-icon">⬆</div>
+          <div class="an-empty-title">Import CSV để bắt đầu phân tích</div>
+          <div class="an-empty-sub">Cần có cột <code>level</code> và ít nhất một cột số liệu.<br>Hỗ trợ: maxLayerOfAPiece · totalValidSideColor · maxColor · totalPieceObj · totalPieces</div>
+        </div>
+
+        <div id="an-content" style="display:none">
+          <!-- Difficulty overview -->
+          <div class="an-section">
+            <div class="an-section-title">
+              Difficulty Score theo level
+              <span class="an-formula">= 0.7 × log‑norm(totalPieces, 9–200) + 0.3 × norm(maxColor, 1–18)</span>
+            </div>
+            <div class="diff-bands" style="margin-bottom:10px">
+              <span class="diff-band diff-easy">Dễ &lt;0.35</span>
+              <span class="diff-band diff-medium">Vừa 0.35–0.6</span>
+              <span class="diff-band diff-hard">Khó 0.6–0.8</span>
+              <span class="diff-band diff-vhard">Rất khó &gt;0.8</span>
+            </div>
+            <div class="an-chart-wrap an-chart-tall">
+              <canvas id="anChartDiff"></canvas>
+            </div>
+          </div>
+
+          <!-- Mini metric charts grid -->
+          <div class="an-grid" id="an-metric-grid"></div>
+
+          <!-- Data table -->
+          <div class="an-section">
+            <div class="an-section-title">Data table</div>
+            <div class="an-table-wrap">
+              <table class="an-table" id="an-table"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="tab-export" class="tab-panel">
         <p class="export-hint">
-          Data được tự động lưu vào localStorage của browser. Dùng JSON backup để chuyển sang máy khác hoặc giữ bản dự phòng.
+          Data được tự động lưu vào localStorage. Dùng JSON backup để chuyển sang máy khác.
         </p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
           <button class="export-btn" onclick="exportJSON()" style="background:var(--accent);color:#fff;border-color:var(--accent);">
-            &#8595; Download JSON backup
+            &#8595; Download JSON
           </button>
           <label class="export-btn" style="cursor:pointer">
             &#8593; Import JSON
@@ -130,122 +166,139 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <script>
+      /* ════════════════════════════════════════════════════════
+         CONSTANTS
+      ════════════════════════════════════════════════════════ */
       const COLORS_PALETTE = [
-        "#E02C29", // Đỏ
-        "#ee387b", // Đỏ hồng
-        "#fd8886", // Hồng
-        "#e56fee", // Tím Hồng
-        "#8b69cc", // Tím
-
-        "#74f7fb", // Xanh ngọc
-        "#45aaf4", // Xanh dương
-        "#306eb4", // Xanh dương đậm
-
-        "#a8d840", // Xanh lá mạ
-        "#40e62d", // Xanh lá
-        "#25af54", // Lục
-
-        "#fffd2f", // Vàng
-        "#ffbf4b", // Cam
-        "#ba651e", // Nâu
-
-        "#f5dda0", // Be vàng nhạt
-        "#fffff2", // Trắng
-
-        "#504e51", // Đen
+        "#E02C29","#ee387b","#fd8886","#e56fee","#8b69cc",
+        "#74f7fb","#45aaf4","#306eb4",
+        "#a8d840","#40e62d","#25af54",
+        "#fffd2f","#ffbf4b","#ba651e",
+        "#f5dda0","#fffff2","#504e51",
       ];
-
       const COLOR_NAMES = [
-        "Đỏ", "Đỏ hồng", "Hồng", "Tím Hồng", "Tím",
-        "Xanh ngọc", "Xanh dương", "Xanh dương đậm",
-        "Xanh lá mạ", "Xanh lá", "Lục",
-        "Vàng", "Cam", "Nâu nhạt", "Nâu vàng",
-        "Be vàng nhạt", "Trắng", "Đen",
+        "Đỏ","Đỏ hồng","Hồng","Tím Hồng","Tím",
+        "Xanh ngọc","Xanh dương","Xanh dương đậm",
+        "Xanh lá mạ","Xanh lá","Lục",
+        "Vàng","Cam","Nâu nhạt","Nâu vàng",
+        "Be vàng nhạt","Trắng","Đen",
       ];
-
       const CHART_COLORS = [
-        "#378ADD", "#1D9E75", "#EF9F27", "#D4537E", "#7F77DD", "#E24B4A",
+        "#378ADD","#1D9E75","#EF9F27","#D4537E","#7F77DD","#E24B4A",
       ];
-
-      const ROWS = [
-        { key: "colors_count", label: "Số màu",              type: "number", placeholder: "—" },
-        { key: "colors_used",  label: "Màu sử dụng",         type: "colors", placeholder: "" },
-        { key: "pieces",       label: "Số mảnh 3D",          type: "number", placeholder: "—" },
-        { key: "booster",      label: "Số lần dùng booster", type: "number", placeholder: "—" },
-        { key: "gold",         label: "Số vàng kiếm được",   type: "number", placeholder: "—" },
-        { key: "playtime",     label: "Thời gian (giây)",    type: "number", placeholder: "—" },
-        { key: "notes",        label: "Ghi chú",             type: "text",   placeholder: "Nhận xét..." },
+      const METRIC_ROWS = [
+        { key:"colors_count", label:"Số màu",              type:"number" },
+        { key:"colors_used",  label:"Màu sử dụng",         type:"colors" },
+        { key:"pieces",       label:"Số mảnh 3D",          type:"number" },
+        { key:"booster",      label:"Số lần dùng booster", type:"number" },
+        { key:"gold",         label:"Số vàng kiếm được",   type:"number" },
+        { key:"playtime",     label:"Thời gian (giây)",    type:"number" },
+        { key:"notes",        label:"Ghi chú",             type:"text"   },
       ];
+      const STORAGE_KEY = "wool_tracker_v2";
+      const MAX_LEVELS  = 5;
 
-      const STORAGE_KEY = "wool_tracker_v1";
-      let charts = {};
-
-      /* ── Difficulty formula ──────────────────────────────────────
-         ColorScore  = colors / 20           (linear, max 20)
-         PieceScore  = log-normalize(pieces, min=12, max=170)
-         Difficulty  = 0.4 × ColorScore + 0.6 × PieceScore  → [0, 1]
-      ─────────────────────────────────────────────────────────── */
-      const DIFF_MAX_COLORS = 20;
-      const DIFF_MIN_PIECES = 12;
-      const DIFF_MAX_PIECES = 170;
-      const LOG_MIN = Math.log(DIFF_MIN_PIECES);
-      const LOG_MAX = Math.log(DIFF_MAX_PIECES);
+      /* ════════════════════════════════════════════════════════
+         DIFFICULTY FORMULA
+         ColorScore  = colors / 18          (practical max ≈ 15–16, cap 18)
+         PieceScore  = log-norm(pieces, 12–200)
+         Difficulty  = 0.3 * ColorScore + 0.7 * PieceScore  → [0,1]
+      ════════════════════════════════════════════════════════ */
+      const D = { maxC: 18, minP: 12, maxP: 200, wC: 0.3, wP: 0.7 };
+      const LOG_MIN = Math.log(D.minP);
+      const LOG_MAX = Math.log(D.maxP);
 
       function difficultyScore(level) {
         const c = getNum(level.colors_count);
         const p = getNum(level.pieces);
         if (c === null && p === null) return null;
-        const colorScore = c !== null
-          ? Math.min(c, DIFF_MAX_COLORS) / DIFF_MAX_COLORS
+        const cScore = c !== null ? Math.min(c, D.maxC) / D.maxC : 0;
+        const pScore = p !== null && p > 0
+          ? Math.max(0, Math.min((Math.log(Math.max(p, D.minP)) - LOG_MIN) / (LOG_MAX - LOG_MIN), 1))
           : 0;
-        const pieceScore = p !== null && p > 0
-          ? Math.max(0, Math.min(
-              (Math.log(Math.max(p, DIFF_MIN_PIECES)) - LOG_MIN) / (LOG_MAX - LOG_MIN),
-              1))
-          : 0;
-        return +(0.4 * colorScore + 0.6 * pieceScore).toFixed(3);
+        return +(D.wC * cScore + D.wP * pScore).toFixed(3);
       }
 
-      function diffLabel(score) {
-        if (score === null) return "—";
-        if (score < 0.35) return "Dễ";
-        if (score < 0.60) return "Vừa";
-        if (score < 0.80) return "Khó";
+      function diffLabel(s) {
+        if (s === null) return "—";
+        if (s < 0.35) return "Dễ";
+        if (s < 0.60) return "Vừa";
+        if (s < 0.80) return "Khó";
         return "Rất khó";
       }
 
-      /* ── State ── */
-      function createWave(n) {
+      /* ════════════════════════════════════════════════════════
+         STATE
+      ════════════════════════════════════════════════════════ */
+      function emptyLevel() {
+        return { colors_count:"", colors_used:[], pieces:"", booster:"", gold:"", playtime:"", notes:"" };
+      }
+
+      function createWave(n, levelCount) {
+        levelCount = levelCount || MAX_LEVELS;
         return {
           name: "Wave " + n,
-          levels: Array.from({ length: 5 }, () => ({
-            colors_count: "", colors_used: [], pieces: "",
-            booster: "", gold: "", playtime: "", notes: "",
-          })),
+          levelCount: levelCount,
+          levels: Array.from({ length: levelCount }, emptyLevel),
         };
+      }
+
+      /** Migrate old format (always 5 levels, no levelCount) or flexible new format */
+      function migrateWave(wv) {
+        if (!wv.levelCount) wv.levelCount = wv.levels ? wv.levels.length : MAX_LEVELS;
+        if (!wv.levels) wv.levels = [];
+        // ensure levels array matches levelCount
+        while (wv.levels.length < wv.levelCount) wv.levels.push(emptyLevel());
+        wv.levels = wv.levels.slice(0, wv.levelCount);
+        wv.levels.forEach((l) => {
+          if (!l.colors_used) l.colors_used = [];
+          ["colors_count","pieces","booster","gold","playtime","notes"].forEach((k) => {
+            if (l[k] === undefined) l[k] = "";
+          });
+        });
+        return wv;
       }
 
       function loadState() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) return JSON.parse(raw);
+          const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("wool_tracker_v1");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.waves) {
+              parsed.waves = parsed.waves.map(migrateWave);
+              if (parsed.currentWave === undefined) parsed.currentWave = 0;
+              return parsed;
+            }
+          }
         } catch (e) {}
         return { waves: [createWave(1)], currentWave: 0 };
       }
 
+      let state = loadState();
+      let charts = {};
+
+      function getNum(v) { const n = parseFloat(v); return isNaN(n) ? null : n; }
+
       function persist() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
         const el = document.getElementById("save-status");
-        if (el) el.textContent = "Saved " + new Date().toLocaleTimeString("vi-VN", {
-          hour: "2-digit", minute: "2-digit", second: "2-digit",
-        });
+        if (el) el.textContent = "Saved " + new Date().toLocaleTimeString("vi-VN",
+          { hour:"2-digit", minute:"2-digit", second:"2-digit" });
       }
 
+      function save(wIdx, lIdx, key, val) {
+        state.waves[wIdx].levels[lIdx][key] = val;
+        persist(); refreshSummary(); updateCSV();
+      }
+
+      /* ════════════════════════════════════════════════════════
+         IMPORT / EXPORT
+      ════════════════════════════════════════════════════════ */
       function exportJSON() {
-        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "wool_tracker_" + new Date().toISOString().slice(0, 10) + ".json";
+        a.download = "wool_tracker_" + new Date().toISOString().slice(0,10) + ".json";
         a.click();
       }
 
@@ -256,12 +309,19 @@
         reader.onload = (e) => {
           try {
             const parsed = JSON.parse(e.target.result);
-            if (parsed.waves && Array.isArray(parsed.waves)) {
-              state = parsed; persist(); buildTable();
-            } else { alert("File không hợp lệ."); }
-          } catch (err) { alert("Không đọc được file JSON."); }
+            if (!parsed.waves || !Array.isArray(parsed.waves)) {
+              alert("File không hợp lệ — thiếu trường 'waves'."); return;
+            }
+            parsed.waves = parsed.waves.map(migrateWave);
+            if (parsed.currentWave === undefined) parsed.currentWave = 0;
+            // clamp currentWave
+            parsed.currentWave = Math.max(0, Math.min(parsed.currentWave, parsed.waves.length - 1));
+            state = parsed;
+            persist(); buildTable();
+          } catch (err) { alert("Không đọc được file JSON: " + err.message); }
         };
         reader.readAsText(file);
+        input.value = ""; // reset so same file can be re-imported
       }
 
       function clearAll() {
@@ -271,28 +331,20 @@
         buildTable();
       }
 
-      let state = loadState();
-
-      function save(waveIdx, levelIdx, key, val) {
-        state.waves[waveIdx].levels[levelIdx][key] = val;
-        persist(); refreshSummary(); updateCSV();
-      }
-
-      function getNum(v) {
-        const n = parseFloat(v);
-        return isNaN(n) ? null : n;
-      }
-
-      /* ── Tab switching ── */
+      /* ════════════════════════════════════════════════════════
+         TABS
+      ════════════════════════════════════════════════════════ */
       function switchTab(name) {
-        document.querySelectorAll(".tab, .tab-panel").forEach((el) => el.classList.remove("active"));
+        document.querySelectorAll(".tab,.tab-panel").forEach((el) => el.classList.remove("active"));
         document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add("active");
         document.getElementById("tab-" + name).classList.add("active");
         if (name === "charts") renderCharts();
         if (name === "export") updateCSV();
       }
 
-      /* ── Wave controls ── */
+      /* ════════════════════════════════════════════════════════
+         WAVE CONTROLS
+      ════════════════════════════════════════════════════════ */
       function addWave() {
         state.waves.push(createWave(state.waves.length + 1));
         state.currentWave = state.waves.length - 1;
@@ -305,16 +357,33 @@
         if (state.currentWave < state.waves.length - 1) { state.currentWave++; persist(); buildTable(); }
       }
 
-      /* ── Build table ── */
-      function buildTable() {
+      function setLevelCount(n) {
         const w = state.currentWave;
         const wave = state.waves[w];
+        wave.levelCount = n;
+        while (wave.levels.length < n) wave.levels.push(emptyLevel());
+        wave.levels = wave.levels.slice(0, n);
+        persist(); buildTable();
+      }
+
+      /* ════════════════════════════════════════════════════════
+         BUILD TABLE
+      ════════════════════════════════════════════════════════ */
+      function buildTable() {
+        const w    = state.currentWave;
+        const wave = state.waves[w];
+        const lc   = wave.levelCount;
+
+        // Compute the actual start level index across all waves
+        let startLevelNum = 1;
+        for (let i = 0; i < w; i++) startLevelNum += state.waves[i].levelCount;
 
         document.getElementById("wave-label").textContent =
-          `Wave ${w + 1} — Levels ${w * 5 + 1}–${w * 5 + 5}`;
+          `Wave ${w + 1} — Levels ${startLevelNum}–${startLevelNum + lc - 1}`;
         document.getElementById("wave-counter").textContent =
           `${w + 1} / ${state.waves.length}`;
 
+        /* pills */
         const pills = document.getElementById("wave-pills-container");
         pills.innerHTML = "";
         state.waves.forEach((wv, i) => {
@@ -325,108 +394,92 @@
           pills.appendChild(p);
         });
 
-        const tbody = document.getElementById("table-body");
-        tbody.innerHTML = "";
+        /* level count buttons */
+        const lcBtns = document.getElementById("level-count-btns");
+        lcBtns.innerHTML = "";
+        for (let n = 1; n <= MAX_LEVELS; n++) {
+          const b = document.createElement("button");
+          b.className = "lc-btn" + (n === lc ? " active" : "");
+          b.textContent = n;
+          b.onclick = () => setLevelCount(n);
+          lcBtns.appendChild(b);
+        }
 
-        ROWS.forEach((row) => {
-          const tr = document.createElement("tr");
-          if (row.type === "text") tr.className = "notes-row";
+        /* table */
+        const wrap = document.getElementById("table-wrap");
+        const colHeaders = Array.from({ length: lc }, (_, i) => `<th>Level ${startLevelNum + i}</th>`).join("");
+        let html = `<table class="grid-table"><thead><tr><th class="row-label">Metric</th>${colHeaders}</tr></thead><tbody>`;
 
-          const tdLabel = document.createElement("td");
-          tdLabel.className = "row-label";
-          tdLabel.textContent = row.label;
-          tr.appendChild(tdLabel);
-
-          for (let li = 0; li < 5; li++) {
-            const td = document.createElement("td");
+        METRIC_ROWS.forEach((row) => {
+          html += `<tr${row.type === "text" ? ' class="notes-row"' : ""}><td class="row-label">${row.label}</td>`;
+          for (let li = 0; li < lc; li++) {
             const data = wave.levels[li];
-
+            html += "<td>";
             if (row.type === "number") {
-              const inp = document.createElement("input");
-              inp.type = "number"; inp.min = "0";
-              inp.className = "cell-input" + (data[row.key] !== "" ? " has-value" : "");
-              inp.placeholder = row.placeholder;
-              inp.value = data[row.key];
-              inp.oninput = function () {
-                save(w, li, row.key, this.value);
-                this.className = "cell-input" + (this.value !== "" ? " has-value" : "");
-              };
-              td.appendChild(inp);
+              const hasVal = data[row.key] !== "";
+              html += `<input type="number" min="0" class="cell-input${hasVal ? " has-value" : ""}"
+                placeholder="—" value="${data[row.key]}"
+                oninput="save(${w},${li},'${row.key}',this.value);this.className='cell-input'+(this.value!==''?' has-value':'')" />`;
             } else if (row.type === "colors") {
-              const wrap = document.createElement("div");
-              wrap.className = "color-cell";
-              const tags = document.createElement("div");
-              tags.className = "color-tags";
-
+              html += `<div class="color-cell"><div class="color-tags" id="ctags-${w}-${li}">`;
               COLORS_PALETTE.forEach((hex, ci) => {
-                const dot = document.createElement("div");
-                dot.className = "color-tag";
-                dot.style.background = hex;
-                dot.title = COLOR_NAMES[ci];
                 const active = data.colors_used.includes(ci);
-                dot.style.outline = active ? `2px solid ${hex}` : "none";
-                dot.style.outlineOffset = "1px";
-                dot.onclick = () => {
-                  const arr = state.waves[w].levels[li].colors_used;
-                  const idx = arr.indexOf(ci);
-                  if (idx === -1) arr.push(ci); else arr.splice(idx, 1);
-                  save(w, li, "colors_used", arr);
-                  buildTable();
-                };
-                tags.appendChild(dot);
+                html += `<div class="color-tag" style="background:${hex};${active ? `outline:2px solid ${hex};outline-offset:1px;` : ""}"
+                  title="${COLOR_NAMES[ci]}" onclick="toggleColor(${w},${li},${ci})"></div>`;
               });
-              wrap.appendChild(tags);
-
-              const countInput = document.createElement("input");
-              countInput.type = "number"; countInput.min = "0";
-              countInput.className = "colors-used-input";
-              countInput.placeholder = "Count";
-              countInput.value = data.colors_count;
-              countInput.oninput = function () { save(w, li, "colors_count", this.value); };
-              wrap.appendChild(countInput);
-              td.appendChild(wrap);
-            } else if (row.type === "text") {
-              const ta = document.createElement("textarea");
-              ta.placeholder = row.placeholder;
-              ta.value = data[row.key];
-              ta.oninput = function () { save(w, li, row.key, this.value); };
-              td.appendChild(ta);
+              html += `</div>
+                <input type="number" min="0" class="colors-used-input" placeholder="Count" value="${data.colors_count}"
+                  oninput="save(${w},${li},'colors_count',this.value)" />
+              </div>`;
+            } else {
+              html += `<textarea placeholder="Nhận xét..." oninput="save(${w},${li},'notes',this.value)">${data[row.key]}</textarea>`;
             }
-            tr.appendChild(td);
+            html += "</td>";
           }
-          tbody.appendChild(tr);
+          html += "</tr>";
         });
-
+        html += "</tbody></table>";
+        wrap.innerHTML = html;
         refreshSummary();
       }
 
-      /* ── Summary ── */
+      function toggleColor(w, li, ci) {
+        const arr = state.waves[w].levels[li].colors_used;
+        const idx = arr.indexOf(ci);
+        if (idx === -1) arr.push(ci); else arr.splice(idx, 1);
+        save(w, li, "colors_used", arr);
+        buildTable();
+      }
+
+      /* ════════════════════════════════════════════════════════
+         SUMMARY
+      ════════════════════════════════════════════════════════ */
       function refreshSummary() {
         let totalGold = 0, maxColors = 0, totalTime = 0, timeCount = 0;
-        state.waves.forEach((wv) => {
-          wv.levels.forEach((l) => {
-            const c = getNum(l.colors_count);
-            const g = getNum(l.gold);
-            const t = getNum(l.playtime);
-            if (c !== null && c > maxColors) maxColors = c;
-            if (g !== null) totalGold += g;
-            if (t !== null) { totalTime += t; timeCount++; }
-          });
-        });
+        state.waves.forEach((wv) => wv.levels.forEach((l) => {
+          const c = getNum(l.colors_count), g = getNum(l.gold), t = getNum(l.playtime);
+          if (c !== null && c > maxColors) maxColors = c;
+          if (g !== null) totalGold += g;
+          if (t !== null) { totalTime += t; timeCount++; }
+        }));
         const el = document.getElementById("summary-strip");
         if (!el) return;
         el.innerHTML = `
           <div class="stat"><div class="stat-label">Waves recorded</div><div class="stat-value">${state.waves.length}</div></div>
           <div class="stat"><div class="stat-label">Total gold earned</div><div class="stat-value">${totalGold}</div></div>
           <div class="stat"><div class="stat-label">Max colors seen</div><div class="stat-value">${maxColors || "—"}</div></div>
-          <div class="stat"><div class="stat-label">Avg playtime</div><div class="stat-value">${timeCount > 0 ? Math.round(totalTime / timeCount) + "s" : "—"}</div></div>
-        `;
+          <div class="stat"><div class="stat-label">Avg playtime</div><div class="stat-value">${timeCount > 0 ? Math.round(totalTime / timeCount) + "s" : "—"}</div></div>`;
       }
 
-      /* ── Charts ── */
+      /* ════════════════════════════════════════════════════════
+         CHARTS
+      ════════════════════════════════════════════════════════ */
       function renderCharts() {
         refreshSummary();
-        const waveLabels = ["L1", "L2", "L3", "L4", "L5"];
+
+        // Build x-axis labels: L1, L2, … up to max level count across waves
+        const maxLc = Math.max(...state.waves.map((wv) => wv.levelCount));
+        const waveLabels = Array.from({ length: maxLc }, (_, i) => "L" + (i + 1));
 
         document.getElementById("chart-legend").innerHTML = state.waves.map((wv, i) => `
           <span class="legend-item">
@@ -437,123 +490,99 @@
         function lineDatasets(key) {
           return state.waves.map((wv, wi) => ({
             label: wv.name,
-            data: wv.levels.map((l) => getNum(l[key])),
+            // pad with null if wave has fewer levels
+            data: [...wv.levels.map((l) => getNum(l[key])), ...Array(maxLc - wv.levelCount).fill(null)],
             borderColor: CHART_COLORS[wi % CHART_COLORS.length],
             backgroundColor: CHART_COLORS[wi % CHART_COLORS.length] + "22",
-            tension: 0.3, fill: false, pointRadius: 4, spanGaps: true,
+            tension: 0.3, fill: false, pointRadius: 4, spanGaps: false,
           }));
         }
 
         const sharedOpts = {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { font: { size: 11 }, color: "#888" } },
-            y: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { font: { size: 11 }, color: "#888", precision: 0 }, beginAtZero: true },
+            x: { grid:{ color:"rgba(128,128,128,0.1)" }, ticks:{ font:{ size:11 }, color:"#888" } },
+            y: { grid:{ color:"rgba(128,128,128,0.1)" }, ticks:{ font:{ size:11 }, color:"#888", precision:0 }, beginAtZero:true },
           },
         };
 
         [
-          { id: "chartColors",  key: "colors_count" },
-          { id: "chartPieces",  key: "pieces" },
-          { id: "chartBooster", key: "booster" },
-          { id: "chartGold",    key: "gold" },
-          { id: "chartTime",    key: "playtime" },
+          { id:"chartColors",  key:"colors_count" },
+          { id:"chartPieces",  key:"pieces" },
+          { id:"chartBooster", key:"booster" },
+          { id:"chartGold",    key:"gold" },
+          { id:"chartTime",    key:"playtime" },
         ].forEach(({ id, key }) => {
           if (charts[id]) charts[id].destroy();
           charts[id] = new Chart(document.getElementById(id), {
-            type: "line",
-            data: { labels: waveLabels, datasets: lineDatasets(key) },
-            options: { ...sharedOpts },
+            type:"line", data:{ labels:waveLabels, datasets:lineDatasets(key) }, options:{...sharedOpts},
           });
         });
 
-        /* Difficulty — line chart, y axis 0–1, dashed threshold lines */
-        const diffDatasets = state.waves.map((wv, wi) => ({
-          label: wv.name,
-          data: wv.levels.map((l) => difficultyScore(l)),
-          borderColor: CHART_COLORS[wi % CHART_COLORS.length],
-          backgroundColor: CHART_COLORS[wi % CHART_COLORS.length] + "28",
-          tension: 0.35, fill: true, pointRadius: 5, pointHoverRadius: 7, spanGaps: true,
-        }));
-
-        /* threshold annotation drawn via afterDraw plugin */
+        /* Difficulty chart */
         const thresholdPlugin = {
-          id: "thresholds",
-          afterDraw(chart) {
-            const { ctx, chartArea: { left, right }, scales: { y } } = chart;
-            [
-              { val: 0.35, color: "rgba(60,180,60,0.55)" },
-              { val: 0.60, color: "rgba(220,170,0,0.55)" },
-              { val: 0.80, color: "rgba(220,80,0,0.55)" },
-            ].forEach(({ val, color }) => {
+          id:"thresholds",
+          afterDraw({ ctx, chartArea:{ left, right }, scales:{ y } }) {
+            [{ val:0.35, color:"rgba(60,180,60,0.55)" },
+             { val:0.60, color:"rgba(220,170,0,0.55)" },
+             { val:0.80, color:"rgba(220,80,0,0.55)" }]
+            .forEach(({ val, color }) => {
               const yPx = y.getPixelForValue(val);
               ctx.save();
-              ctx.strokeStyle = color;
-              ctx.setLineDash([5, 5]);
-              ctx.lineWidth = 1;
+              ctx.strokeStyle = color; ctx.setLineDash([5,5]); ctx.lineWidth = 1;
               ctx.beginPath(); ctx.moveTo(left, yPx); ctx.lineTo(right, yPx); ctx.stroke();
               ctx.restore();
             });
           },
         };
 
+        const diffDatasets = state.waves.map((wv, wi) => ({
+          label: wv.name,
+          data: [...wv.levels.map((l) => difficultyScore(l)), ...Array(maxLc - wv.levelCount).fill(null)],
+          borderColor: CHART_COLORS[wi % CHART_COLORS.length],
+          backgroundColor: CHART_COLORS[wi % CHART_COLORS.length] + "28",
+          tension: 0.35, fill: true, pointRadius: 5, pointHoverRadius: 7, spanGaps: false,
+        }));
+
         if (charts["chartDifficulty"]) charts["chartDifficulty"].destroy();
         charts["chartDifficulty"] = new Chart(document.getElementById("chartDifficulty"), {
-          type: "line",
-          plugins: [thresholdPlugin],
-          data: { labels: waveLabels, datasets: diffDatasets },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: (ctx) => {
-                    const s = ctx.parsed.y;
-                    return s !== null
-                      ? `${ctx.dataset.label}: ${s.toFixed(2)}  (${diffLabel(s)})`
-                      : `${ctx.dataset.label}: —`;
-                  },
-                },
-              },
+          type:"line",
+          plugins:[thresholdPlugin],
+          data:{ labels:waveLabels, datasets:diffDatasets },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+              legend:{ display:false },
+              tooltip:{ callbacks:{ label:(ctx) => {
+                const s = ctx.parsed.y;
+                return s !== null ? `${ctx.dataset.label}: ${s.toFixed(2)}  (${diffLabel(s)})` : `${ctx.dataset.label}: —`;
+              }}},
             },
-            scales: {
-              x: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { font: { size: 11 }, color: "#888" } },
-              y: {
-                min: 0, max: 1,
-                grid: { color: "rgba(128,128,128,0.1)" },
-                ticks: {
-                  font: { size: 11 }, color: "#888", stepSize: 0.2,
-                  callback: (v) => v.toFixed(1),
-                },
-              },
+            scales:{
+              x:{ grid:{ color:"rgba(128,128,128,0.1)" }, ticks:{ font:{ size:11 }, color:"#888" } },
+              y:{ min:0, max:1, grid:{ color:"rgba(128,128,128,0.1)" }, ticks:{ font:{ size:11 }, color:"#888", stepSize:0.2, callback:(v) => v.toFixed(1) } },
             },
           },
         });
       }
 
-      /* ── CSV export (includes difficulty) ── */
+      /* ════════════════════════════════════════════════════════
+         CSV
+      ════════════════════════════════════════════════════════ */
       function updateCSV() {
-        const rows = [[
-          "Wave", "Level", "Số màu", "Màu sử dụng", "Số mảnh 3D",
-          "Số lần dùng booster", "Số vàng kiếm được", "Thời gian (s)",
-          "Độ khó (0–1)", "Nhận xét độ khó", "Ghi chú",
-        ]];
+        const rows = [["Wave","Level","Số màu","Màu sử dụng","Số mảnh 3D",
+          "Số lần dùng booster","Số vàng kiếm được","Thời gian (s)",
+          "Độ khó (0–1)","Nhận xét độ khó","Ghi chú"]];
+        let globalL = 1;
         state.waves.forEach((wv) => {
-          wv.levels.forEach((l, li) => {
+          wv.levels.forEach((l) => {
             const colorNames = l.colors_used.map((ci) => COLOR_NAMES[ci]).join("+");
             const diff = difficultyScore(l);
-            rows.push([
-              wv.name, `L${li + 1}`,
-              l.colors_count, colorNames, l.pieces,
-              l.booster, l.gold, l.playtime,
-              diff !== null ? diff : "",
-              diff !== null ? diffLabel(diff) : "",
-              '"' + (l.notes || "").replace(/"/g, '""') + '"',
-            ]);
+            rows.push([wv.name, `L${globalL++}`,
+              l.colors_count, colorNames, l.pieces, l.booster, l.gold, l.playtime,
+              diff !== null ? diff : "", diff !== null ? diffLabel(diff) : "",
+              '"' + (l.notes || "").replace(/"/g, '""') + '"']);
           });
         });
         document.getElementById("csv-output").value = rows.map((r) => r.join(",")).join("\n");
@@ -564,9 +593,229 @@
         navigator.clipboard.writeText(ta.value).catch(() => { ta.select(); document.execCommand("copy"); });
       }
 
+      /* ════════════════════════════════════════════════════════
+         LEVEL ANALYSIS — CSV import & visualisation
+      ════════════════════════════════════════════════════════ */
+      let anData = [];   // array of row objects
+      let anCharts = {}; // keyed chart instances
+
+      // Difficulty constants (same family as playtest tracker)
+      const AN_D = { minP: 9, maxP: 200, maxC: 18, wP: 0.7, wC: 0.3 };
+      const AN_LOG_MIN = Math.log(AN_D.minP);
+      const AN_LOG_MAX = Math.log(AN_D.maxP);
+
+      function anDiffScore(row) {
+        const p = row.totalPieces   != null ? row.totalPieces   : null;
+        const c = row.maxColor      != null ? row.maxColor      : null;
+        if (p === null && c === null) return null;
+        const pS = p !== null && p > 0
+          ? Math.max(0, Math.min((Math.log(Math.max(p, AN_D.minP)) - AN_LOG_MIN) / (AN_LOG_MAX - AN_LOG_MIN), 1))
+          : 0;
+        const cS = c !== null ? Math.min(c, AN_D.maxC) / AN_D.maxC : 0;
+        return +(AN_D.wP * pS + AN_D.wC * cS).toFixed(3);
+      }
+
+      /* CSV parser — handles quoted fields, trims whitespace */
+      function parseCSV(text) {
+        const lines = text.trim().split(/\r?\n/);
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+        return lines.slice(1).map((line) => {
+          const vals = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
+          const row = {};
+          headers.forEach((h, i) => {
+            const raw = vals[i] ?? "";
+            const n = parseFloat(raw);
+            row[h] = raw === "" ? null : isNaN(n) ? raw : n;
+          });
+          return row;
+        }).filter((row) => Object.values(row).some((v) => v !== null && v !== ""));
+      }
+
+      function analysisImportCSV(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          anData = parseCSV(e.target.result);
+          input.value = "";
+          if (!anData.length) { alert("CSV rỗng hoặc không đọc được."); return; }
+          renderAnalysis();
+        };
+        reader.readAsText(file);
+      }
+
+      /* Detect numeric columns (excluding 'level') */
+      function anNumericCols() {
+        if (!anData.length) return [];
+        return Object.keys(anData[0]).filter((k) =>
+          k !== "level" && k !== "model_name" && anData.some((r) => typeof r[k] === "number"));
+      }
+
+      const AN_COL_LABELS = {
+        maxLayerOfAPiece:    "Max Layer/Piece",
+        totalValidSideColor: "Valid Side Colors",
+        maxColor:            "Max Colors",
+        totalPieceObj:       "Piece Objects",
+        totalPieces:         "Total Pieces",
+      };
+      const AN_COL_COLORS = [
+        "#378ADD","#1D9E75","#EF9F27","#D4537E","#7F77DD","#E24B4A","#22BEC9","#9B59B6",
+      ];
+
+      function renderAnalysis() {
+        const total = anData.length;
+        document.getElementById("an-row-count").textContent = `${total} levels loaded`;
+        document.getElementById("an-empty").style.display = "none";
+        document.getElementById("an-content").style.display = "block";
+
+        const cols = anNumericCols();
+        const levelNums = anData.map((r) => r.level ?? r.Level);
+
+        // ── Difficulty chart ──────────────────────────────────
+        const diffScores = anData.map((r) => anDiffScore(r));
+        const diffColors = diffScores.map((s) => {
+          if (s === null) return "rgba(150,150,150,0.4)";
+          if (s < 0.35) return "rgba(60,180,60,0.75)";
+          if (s < 0.60) return "rgba(220,170,0,0.8)";
+          if (s < 0.80) return "rgba(220,100,0,0.8)";
+          return "rgba(200,40,40,0.85)";
+        });
+
+        if (anCharts["diff"]) anCharts["diff"].destroy();
+
+        const thPlugin = {
+          id: "anThresholds",
+          afterDraw({ ctx, chartArea:{ left, right }, scales:{ y } }) {
+            [{ v:0.35, c:"rgba(60,180,60,0.55)" },
+             { v:0.60, c:"rgba(220,170,0,0.55)" },
+             { v:0.80, c:"rgba(220,80,0,0.55)" }].forEach(({ v, c }) => {
+              const yp = y.getPixelForValue(v);
+              ctx.save(); ctx.strokeStyle = c; ctx.setLineDash([5,5]); ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.moveTo(left, yp); ctx.lineTo(right, yp); ctx.stroke(); ctx.restore();
+            });
+          },
+        };
+
+        anCharts["diff"] = new Chart(document.getElementById("anChartDiff"), {
+          type: "bar",
+          plugins: [thPlugin],
+          data: {
+            labels: levelNums,
+            datasets: [{
+              label: "Difficulty",
+              data: diffScores,
+              backgroundColor: diffColors,
+              borderColor: diffColors.map((c) => c.replace(/[\d.]+\)$/, "1)")),
+              borderWidth: 0,
+              borderRadius: 3,
+            }],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: {
+                title: (items) => `Level ${items[0].label}`,
+                label: (ctx) => {
+                  const s = ctx.parsed.y;
+                  const row = anData[ctx.dataIndex];
+                  const lines = [`Score: ${s !== null ? s.toFixed(3) : "—"}  (${diffLabel(s)})`];
+                  if (row.totalPieces != null) lines.push(`Pieces: ${row.totalPieces}`);
+                  if (row.maxColor   != null) lines.push(`Max colors: ${row.maxColor}`);
+                  return lines;
+                },
+              }},
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { font:{ size: 10 }, color:"#888",
+                  maxTicksLimit: Math.min(total, 60),
+                  callback(v) { return this.getLabelForValue(v); },
+                },
+              },
+              y: { min:0, max:1,
+                grid: { color:"rgba(128,128,128,0.1)" },
+                ticks: { font:{ size:11 }, color:"#888", stepSize:0.2,
+                  callback:(v) => v.toFixed(1) },
+              },
+            },
+          },
+        });
+
+        // ── Mini metric charts ────────────────────────────────
+        const grid = document.getElementById("an-metric-grid");
+        grid.innerHTML = "";
+        cols.forEach((col, ci) => {
+          const wrap = document.createElement("div");
+          wrap.className = "an-mini-wrap";
+          const label = document.createElement("div");
+          label.className = "an-mini-label";
+          label.textContent = AN_COL_LABELS[col] || col;
+          const canvasWrap = document.createElement("div");
+          canvasWrap.className = "an-mini-chart";
+          const canvas = document.createElement("canvas");
+          canvas.id = "anMini_" + col;
+          canvasWrap.appendChild(canvas);
+          wrap.appendChild(label);
+          wrap.appendChild(canvasWrap);
+          grid.appendChild(wrap);
+
+          const color = AN_COL_COLORS[ci % AN_COL_COLORS.length];
+          if (anCharts["mini_" + col]) anCharts["mini_" + col].destroy();
+          anCharts["mini_" + col] = new Chart(canvas, {
+            type: "line",
+            data: {
+              labels: levelNums,
+              datasets: [{
+                data: anData.map((r) => r[col]),
+                borderColor: color,
+                backgroundColor: color + "22",
+                borderWidth: 1.5,
+                pointRadius: total > 80 ? 0 : 2,
+                tension: 0.3, fill: true, spanGaps: true,
+              }],
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend:{ display:false }, tooltip:{ callbacks:{
+                title:(i) => `Level ${i[0].label}`,
+                label:(ctx) => `${AN_COL_LABELS[col]||col}: ${ctx.parsed.y ?? "—"}`,
+              }}},
+              scales: {
+                x: { display: false },
+                y: { beginAtZero: true, grid:{ color:"rgba(128,128,128,0.08)" },
+                  ticks:{ font:{ size:10 }, color:"#aaa", maxTicksLimit:4 } },
+              },
+            },
+          });
+        });
+
+        // ── Data table ────────────────────────────────────────
+        const allCols = Object.keys(anData[0]);
+        const table = document.getElementById("an-table");
+        const diffH = `<th class="an-th an-th-diff">Difficulty</th>`;
+        const diffLabel2 = `<th class="an-th an-th-diff">Label</th>`;
+        table.innerHTML = `<thead><tr>${allCols.map((c) => `<th class="an-th">${c}</th>`).join("")}${diffH}${diffLabel2}</tr></thead>`;
+        const tbody = document.createElement("tbody");
+        anData.forEach((row, ri) => {
+          const s = anDiffScore(row);
+          const cls = s === null ? "" : s < 0.35 ? "diff-easy" : s < 0.6 ? "diff-medium" : s < 0.8 ? "diff-hard" : "diff-vhard";
+          const tr = document.createElement("tr");
+          tr.className = ri % 2 === 0 ? "an-tr-even" : "";
+          tr.innerHTML = allCols.map((c) => `<td class="an-td">${row[c] ?? "—"}</td>`).join("")
+            + `<td class="an-td an-td-diff"><span class="diff-score-pill ${cls}">${s !== null ? s.toFixed(3) : "—"}</span></td>`
+            + `<td class="an-td">${diffLabel(s)}</td>`;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+      }
+
       buildTable();
-      const el = document.getElementById("save-status");
-      if (el) el.textContent = localStorage.getItem(STORAGE_KEY) ? "Data đã được khôi phục" : "Chưa có data";
+      const _el = document.getElementById("save-status");
+      if (_el) _el.textContent = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("wool_tracker_v1")
+        ? "Data đã được khôi phục" : "Chưa có data";
     </script>
   </body>
 </html>
