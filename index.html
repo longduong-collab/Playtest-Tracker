@@ -55,7 +55,7 @@
         <div class="chart-section">
           <div class="chart-label">
             Độ khó theo level
-            <span class="chart-formula">= 0.3 × (màu/18) + 0.7 × log‑norm(mảnh, 12–200)</span>
+            <span class="chart-formula">= 0.4 × (màu / 15) + 0.6 × norm(mảnh, 12–180)</span>
           </div>
           <div class="diff-bands">
             <span class="diff-band diff-easy">Dễ &lt;0.35</span>
@@ -108,7 +108,7 @@
         <div id="an-empty" class="an-empty">
           <div class="an-empty-icon">⬆</div>
           <div class="an-empty-title">Import CSV để bắt đầu phân tích</div>
-          <div class="an-empty-sub">Cần có cột <code>level</code> và ít nhất một cột số liệu.<br>Hỗ trợ: maxLayerOfAPiece · totalValidSideColor · maxColor · totalPieceObj · totalPieces</div>
+          <div class="an-empty-sub">Cần có cột <code>level</code> và ít nhất một cột dữ liệu độ khó.<br>Hỗ trợ: maxLayerOfAPiece · totalValidSideColor · maxColor · totalPieceObj · totalPieces · piece_entries</div>
         </div>
 
         <div id="an-content" style="display:none">
@@ -116,7 +116,7 @@
           <div class="an-section">
             <div class="an-section-title">
               Difficulty Score theo level
-              <span class="an-formula">= 0.7 × log‑norm(totalPieces, 9–200) + 0.3 × norm(maxColor, 1–18)</span>
+              <span class="an-formula">= 0.4 × (maxColor / 14) + 0.6 × norm(totalPieces, 9–200)</span>
             </div>
             <div class="diff-bands" style="margin-bottom:10px">
               <span class="diff-band diff-easy">Dễ &lt;0.35</span>
@@ -200,23 +200,46 @@
 
       /* ════════════════════════════════════════════════════════
          DIFFICULTY FORMULA
-         ColorScore  = colors / 18          (practical max ≈ 15–16, cap 18)
-         PieceScore  = log-norm(pieces, 12–200)
-         Difficulty  = 0.3 * ColorScore + 0.7 * PieceScore  → [0,1]
+         ColorScore  = colors / maxColor
+         PieceScore  = norm(pieces, minPieces–maxPieces)
+         Difficulty  = 0.4 * ColorScore + 0.6 * PieceScore  → [0,1]
       ════════════════════════════════════════════════════════ */
-      const D = { maxC: 18, minP: 12, maxP: 200, wC: 0.3, wP: 0.7 };
-      const LOG_MIN = Math.log(D.minP);
-      const LOG_MAX = Math.log(D.maxP);
+      const DIFF_WEIGHTS = { wC: 0.4, wP: 0.6 };
+
+      function getDifficultyRanges() {
+        const allLevels = state.waves.flatMap((wv) => wv.levels);
+        const pieceVals = allLevels.map((lvl) => getNum(lvl.pieces)).filter((n) => n !== null && n > 0);
+        const colorVals = allLevels.map((lvl) => getNum(lvl.colors_count)).filter((n) => n !== null);
+        const minP = pieceVals.length ? Math.min(...pieceVals) : 12;
+        const maxP = pieceVals.length ? Math.max(...pieceVals) : 180;
+        return {
+          maxC: Math.max(15, ...(colorVals.length ? colorVals : [15])),
+          minP: Math.min(12, minP),
+          maxP: Math.max(180, maxP),
+        };
+      }
 
       function difficultyScore(level) {
         const c = getNum(level.colors_count);
         const p = getNum(level.pieces);
         if (c === null && p === null) return null;
-        const cScore = c !== null ? Math.min(c, D.maxC) / D.maxC : 0;
+
+        const { maxC, minP, maxP } = getDifficultyRanges();
+
+        const cScore = c !== null ? Math.min(c, maxC) / maxC : 0;
         const pScore = p !== null && p > 0
-          ? Math.max(0, Math.min((Math.log(Math.max(p, D.minP)) - LOG_MIN) / (LOG_MAX - LOG_MIN), 1))
+          ? Math.max(0, Math.min((Math.max(p, minP) - minP) / Math.max(0.0001, maxP - minP), 1))
           : 0;
-        return +(D.wC * cScore + D.wP * pScore).toFixed(3);
+
+        return +(DIFF_WEIGHTS.wC * cScore + DIFF_WEIGHTS.wP * pScore).toFixed(3);
+      }
+
+      function updateDifficultyFormulaText() {
+        const { maxC, minP, maxP } = getDifficultyRanges();
+        const formulaEl = document.querySelector(".chart-formula");
+        if (formulaEl) {
+          formulaEl.textContent = `= 0.4 × (màu / ${maxC}) + 0.6 × norm(mảnh, ${minP}–${maxP})`;
+        }
       }
 
       function diffLabel(s) {
@@ -537,6 +560,8 @@
           },
         };
 
+        updateDifficultyFormulaText();
+
         const diffDatasets = state.waves.map((wv, wi) => ({
           label: wv.name,
           data: [...wv.levels.map((l) => difficultyScore(l)), ...Array(maxLc - wv.levelCount).fill(null)],
@@ -599,20 +624,42 @@
       let anData = [];   // array of row objects
       let anCharts = {}; // keyed chart instances
 
-      // Difficulty constants (same family as playtest tracker)
-      const AN_D = { minP: 9, maxP: 200, maxC: 18, wP: 0.7, wC: 0.3 };
-      const AN_LOG_MIN = Math.log(AN_D.minP);
-      const AN_LOG_MAX = Math.log(AN_D.maxP);
+      const AN_DIFF_WEIGHTS = { wC: 0.4, wP: 0.6 };
+
+      function analysisPieceValue(row) {
+        if (row.totalPieces != null) return row.totalPieces;
+        if (row.piece_entries != null) return row.piece_entries;
+        if (row.totalPieceObj != null) return row.totalPieceObj;
+        return null;
+      }
+
+      function analysisPieceKey() {
+        if (anData.some((r) => typeof r.totalPieces === "number")) return "totalPieces";
+        if (anData.some((r) => typeof r.piece_entries === "number")) return "piece_entries";
+        if (anData.some((r) => typeof r.totalPieceObj === "number")) return "totalPieceObj";
+        return "totalPieces";
+      }
+
+      function getAnalysisRanges() {
+        const pieceVals = anData.map(analysisPieceValue).filter((n) => typeof n === "number" && n > 0);
+        const colorVals = anData.map((r) => r.maxColor).filter((n) => typeof n === "number");
+        return {
+          minP: pieceVals.length ? Math.min(...pieceVals) : 9,
+          maxP: pieceVals.length ? Math.max(...pieceVals) : 180,
+          maxC: Math.max(14, ...(colorVals.length ? colorVals : [14])),
+        };
+      }
 
       function anDiffScore(row) {
-        const p = row.totalPieces   != null ? row.totalPieces   : null;
-        const c = row.maxColor      != null ? row.maxColor      : null;
+        const p = analysisPieceValue(row);
+        const c = row.maxColor != null ? row.maxColor : null;
         if (p === null && c === null) return null;
+        const { minP, maxP, maxC } = getAnalysisRanges();
         const pS = p !== null && p > 0
-          ? Math.max(0, Math.min((Math.log(Math.max(p, AN_D.minP)) - AN_LOG_MIN) / (AN_LOG_MAX - AN_LOG_MIN), 1))
+          ? Math.max(0, Math.min((Math.max(p, minP) - minP) / Math.max(0.0001, maxP - minP), 1))
           : 0;
-        const cS = c !== null ? Math.min(c, AN_D.maxC) / AN_D.maxC : 0;
-        return +(AN_D.wP * pS + AN_D.wC * cS).toFixed(3);
+        const cS = c !== null ? Math.min(c, maxC) / maxC : 0;
+        return +(AN_DIFF_WEIGHTS.wP * pS + AN_DIFF_WEIGHTS.wC * cS).toFixed(3);
       }
 
       /* CSV parser — handles quoted fields, trims whitespace */
@@ -645,11 +692,15 @@
         reader.readAsText(file);
       }
 
-      /* Detect numeric columns (excluding 'level') */
+      /* Detect numeric columns related to difficulty only */
       function anNumericCols() {
         if (!anData.length) return [];
+        const allowed = [
+          "maxLayerOfAPiece", "totalValidSideColor", "maxColor",
+          "totalPieceObj", "totalPieces", "piece_entries",
+        ];
         return Object.keys(anData[0]).filter((k) =>
-          k !== "level" && k !== "model_name" && anData.some((r) => typeof r[k] === "number"));
+          allowed.includes(k) && anData.some((r) => typeof r[k] === "number"));
       }
 
       const AN_COL_LABELS = {
@@ -658,10 +709,20 @@
         maxColor:            "Max Colors",
         totalPieceObj:       "Piece Objects",
         totalPieces:         "Total Pieces",
+        piece_entries:       "Piece Entries",
       };
       const AN_COL_COLORS = [
         "#378ADD","#1D9E75","#EF9F27","#D4537E","#7F77DD","#E24B4A","#22BEC9","#9B59B6",
       ];
+
+      function updateAnalysisFormulaText() {
+        const { minP, maxP, maxC } = getAnalysisRanges();
+        const formulaEl = document.querySelector(".an-formula");
+        const pieceKey = analysisPieceKey();
+        if (formulaEl) {
+          formulaEl.textContent = `= 0.4 × (maxColor / ${maxC}) + 0.6 × norm(${pieceKey}, ${minP}–${maxP})`;
+        }
+      }
 
       function renderAnalysis() {
         const total = anData.length;
@@ -673,6 +734,7 @@
         const levelNums = anData.map((r) => r.level ?? r.Level);
 
         // ── Difficulty chart ──────────────────────────────────
+        updateAnalysisFormulaText();
         const diffScores = anData.map((r) => anDiffScore(r));
         const diffColors = diffScores.map((s) => {
           if (s === null) return "rgba(150,150,150,0.4)";
@@ -737,8 +799,8 @@
               },
               y: { min:0, max:1,
                 grid: { color:"rgba(128,128,128,0.1)" },
-                ticks: { font:{ size:11 }, color:"#888", stepSize:0.2,
-                  callback:(v) => v.toFixed(1) },
+                ticks: { font:{ size:11 }, color:"#888", stepSize:0.1,
+                  callback:(v) => v.toFixed(2) },
               },
             },
           },
